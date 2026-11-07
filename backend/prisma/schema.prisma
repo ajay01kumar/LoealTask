@@ -1,0 +1,101 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum ClaimStatus {
+  DRAFT
+  PENDING_EVALUATION
+  JUSTIFIED
+  NOT_JUSTIFIED
+  PARTIALLY_JUSTIFIED
+  REVISED
+}
+
+enum ClaimCategory {
+  ANTI_AGING
+  HYDRATION
+  SKIN_BARRIER
+  RADIANCE
+  SUN_PROTECTION
+  HAIR_CARE
+}
+
+enum StudyType {
+  DOUBLE_BLIND_RCT
+  OPEN_LABEL_CLINICAL
+  INSTRUMENTAL_EX_VIVO
+  CONSUMER_PERCEPTION
+}
+
+model Product {
+  id             String        @id @default(uuid())
+  formulaCode    String        @unique // e.g. "LR-PARIS-2026-F98"
+  name           String
+  brand          String        // e.g. "L'Oréal Paris", "Lancôme", "La Roche-Posay"
+  claims         Claim[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([formulaCode])
+}
+
+model Claim {
+  id             String             @id @default(uuid())
+  productId      String
+  product        Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  claimText      String             // e.g. "Reduces wrinkles by 20% in 4 weeks"
+  category       ClaimCategory
+  targetDuration String?            // e.g. "4 weeks"
+  targetMetric   String?            // e.g. "Wrinkle depth reduction >= 20%"
+  status         ClaimStatus        @default(DRAFT)
+  evidences      ClinicalEvidence[]
+  assessments    Assessment[]
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  @@index([productId])
+  @@index([status])
+}
+
+model ClinicalEvidence {
+  id             String       @id @default(uuid())
+  claimId        String
+  claim          Claim        @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  protocolNumber String       // e.g. "CLIN-PARIS-2026-042"
+  studyType      StudyType
+  sampleSize     Int          // e.g. 45
+  duration       String       // e.g. "28 days"
+  methodology    String       // e.g. "Primos 3D optical profilometry on crow's feet"
+  findingsText   String       @db.Text
+  evaluatorName  String
+  evaluatorRole  String
+  createdAt      DateTime     @default(now())
+
+  @@index([claimId])
+  @@index([protocolNumber])
+}
+
+model Assessment {
+  id                   String      @id @default(uuid())
+  claimId              String
+  claim                Claim       @relation(fields: [claimId], references: [id], onDelete: Cascade)
+  isJustified          Boolean
+  confidenceScore      Float       // 0.00 to 1.00
+  verdictCategory      ClaimStatus // JUSTIFIED, NOT_JUSTIFIED, PARTIALLY_JUSTIFIED
+  reasoning            String      @db.Text
+  statisticalAlignment String      @db.Text
+  methodologyGaps      String[]
+  regulatoryRiskAlerts String[]
+  rawLlmOutput         Json
+  modelIdentifier      String      // e.g. "gpt-4o-2024-08-06"
+  tokensUsed           Int
+  evaluatedAt          DateTime    @default(now())
+
+  @@index([claimId])
+  @@index([verdictCategory])
+}

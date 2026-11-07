@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: loreal_claims_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: loreal_user
+      POSTGRES_PASSWORD: loreal_secure_password
+      POSTGRES_DB: loreal_claims_db
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U loreal_user -d loreal_claims_db']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
