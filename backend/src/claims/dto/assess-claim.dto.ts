@@ -19,3 +19,4 @@ export class AssessClaimDto {
   @IsOptional()
   protocolNumber?: string;
 }
+

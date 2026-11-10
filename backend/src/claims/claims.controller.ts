@@ -17,3 +17,4 @@ export class ClaimsController {
     return this.claimsService.getAllClaims();
   }
 }
+

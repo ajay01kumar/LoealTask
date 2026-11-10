@@ -99,3 +99,4 @@ model Assessment {
   @@index([claimId])
   @@index([verdictCategory])
 }
+

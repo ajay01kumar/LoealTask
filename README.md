@@ -219,3 +219,4 @@ Phase 1: Multi-Modal Ingestion ──► Phase 2: Global Jurisdictions ──►
 - **Project**: L'Oréal Claims Intelligence Engine (CIE)
 - **Role**: Software Engineer Candidate
 - **Contact**: Paris R&I Technical Evaluation Board
+
